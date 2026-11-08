@@ -26,3 +26,16 @@ add_app(a2-model-0 a2_model_0.cpp)
 add_app(a2-model-1 a2_model_1.cpp)
 add_app(a2-model-2 a2_model_2.cpp)
 add_app(a2-scene   a2_scene.cpp)
+# Assignment 3: interactive trajectory editor / keyframe playback
+add_executable(a3-trajectory
+  src/apps/a3_trajectory.cpp
+  src/trajectory/bezier.cpp
+  src/trajectory/trajectory_io.cpp
+  src/trajectory/keyframes.cpp
+  src/trajectory/mission_paths.cpp
+)
+target_include_directories(a3-trajectory PRIVATE
+  src/common src/trajectory third_party ${GLM_INCLUDE_DIR}
+)
+target_compile_definitions(a3-trajectory PRIVATE ASSET_DIR="${ASSET_DIR}")
+target_link_libraries(a3-trajectory PRIVATE glfw ${GLEW_LIBRARIES} OpenGL::GL)
