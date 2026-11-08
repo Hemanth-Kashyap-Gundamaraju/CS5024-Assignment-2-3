@@ -1,0 +1,22 @@
+
+# CMake build output
+**/build/
+**/cmake-build-*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# Compiled files
+*.o
+*.a
+*.so
+*.dll
+*.exe
+
+# Windows metadata
+*.Zone.Identifier
+
+# OS/editor files
+.DS_Store
