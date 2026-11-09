@@ -771,11 +771,16 @@ int main(int argc, char** argv) {
         const double rocket_altitude = glm::max(0.0, g_sim.altitude());
         // Start with a short ground-safe plume, then allow it to grow as the
         // vehicle climbs into thinner atmosphere.
-        const float plume_limit = (float)glm::max(0.75, rocket_altitude * 0.00045);
+        // Keep a clearly visible nozzle flame near the pad, then let it grow with altitude.
+        const float plume_limit = (float)glm::max(4.0, rocket_altitude * 0.00045);
         g_rocket.draw(
             renderer, ctx, rocket_pose(),
             rocket_altitude, true, plume_limit
         );
+
+        // Add the larger animated exhaust envelope after liftoff. This helper was
+        // implemented above but was not called by the main render loop.
+        draw_engine_exhaust(renderer, ctx);
 
         // Draw the Assignment 2 on-screen mission information panel.
         draw_mission_hud(renderer, win, warp);

@@ -253,6 +253,39 @@ struct A3PlanetTextures {
     }
 };
 
+// Animated layered corona around the Sun. The shells use additive blending so
+// the Sun reads as a luminous object instead of an ordinary orange planet.
+void draw_sun_corona(SceneRenderer& r, const Mesh& sphere,
+                     const Point& sun, const Point& eye, float radius, double time) {
+    const float pulse = 1.0f + 0.035f * std::sin(static_cast<float>(time) * 2.4f)
+                              + 0.018f * std::sin(static_cast<float>(time) * 5.7f);
+    const glm::mat4 base = glm::translate(glm::mat4(1.0f), glm::vec3(sun - eye));
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glDepthMask(GL_FALSE);
+
+    // Draw outer-to-inner translucent shells; each is slightly larger and softer.
+    const float scales[] = {1.72f, 1.48f, 1.27f};
+    const glm::vec3 colors[] = {
+        {1.0f, 0.16f, 0.025f},
+        {1.0f, 0.34f, 0.045f},
+        {1.0f, 0.66f, 0.16f}
+    };
+    const float alphas[] = {0.075f, 0.095f, 0.13f};
+    for (int i = 0; i < 3; ++i) {
+        const float s = radius * scales[i] * pulse;
+        glm::mat4 model = base * glm::scale(glm::mat4(1.0f), glm::vec3(s));
+        Material glow = make_material(colors[i], 0.0f, 1.0f);
+        glow.alpha = alphas[i];
+        r.draw_mesh(sphere, model, glow);
+    }
+
+    glDepthMask(GL_TRUE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
+}
+
 void draw_planet(SceneRenderer& r, const Mesh& sphere, PointBuffer& ring_buffer,
                  const Point& pos, const Point& eye, float radius,
                  const glm::vec3& color, bool ring, double phase, float spin_rate, GLuint texture=0) {
@@ -497,10 +530,14 @@ int main(int argc, char** argv) {
                         spin_rate,planet_textures.for_name(f.name));
             draw_point(renderer,event_buffer,pp,camera_eye,glm::vec4(f.color,1),6.0f);
         }
-        // Sun marker near departure point, Earth-like blue globe at path start.
+        // Sun near the departure point: animated corona plus a bright warm core.
         const Point earth=current.control_points.front();
         const Point sun=earth+Point(-10,4,-4);
-        draw_planet(renderer,sphere,polygon_buffer,sun,camera_eye,4.5f,{1.0f,0.63f,0.18f},false,win.total_time,0.0f,0);
+        draw_sun_corona(renderer,sphere,sun,camera_eye,4.5f,win.total_time);
+        const glm::mat4 sun_model = glm::translate(glm::mat4(1.0f),glm::vec3(sun-camera_eye))
+                                  * glm::scale(glm::mat4(1.0f),glm::vec3(4.5f));
+        Material sun_material=make_material({1.0f,0.72f,0.28f},0.0f,1.0f);
+        renderer.draw_mesh(sphere,sun_model,sun_material);
 
         // Booster and cruise-stage trajectories remain independently active per keyframe flags.
         if (playing) {
