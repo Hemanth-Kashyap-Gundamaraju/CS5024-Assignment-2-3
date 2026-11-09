@@ -1,0 +1,43 @@
+
+# Each block: point_count followed by x y z. Main mission paths are defined in mission_paths.cpp.
+# Block 1: Voyager 1 main route reference
+9
+0 0 0
+8 2 1
+15 8 3
+23 10 -2
+31 8 -5
+43 15 3
+58 22 10
+75 28 18
+95 35 25
+# Block 2: launch booster separation arc (3D)
+6
+3 0 0
+6 1 1
+10 2 2
+14 3 3
+17 4 4
+20 5 5
+# Block 3: Centaur / upper-stage separation arc (3D)
+5
+8 2 1
+12 4 2
+16 6 3
+20 8 4
+24 10 5
+# Block 4: probe deployment and antenna articulation reference (3D)
+5
+15 8 3
+20 9 1
+25 10 -1
+31 12 -2
+37 14 -1
+# Block 5: cinematic camera guide path (3D)
+6
+0 20 48
+14 26 38
+28 31 32
+45 37 28
+66 45 26
+90 55 32
