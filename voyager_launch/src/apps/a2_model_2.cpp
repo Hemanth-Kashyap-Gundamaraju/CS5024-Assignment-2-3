@@ -2,9 +2,11 @@
 // Keys: mouse drag = orbit | wheel = zoom | N = release next stage | O = open/close Voyager booms
 //       B = engines on/off | 1 / 2 = Voyager 1 / 2 stripe | H = whole rocket | V = Voyager close-up | R = reset
 #include "rocket.h"
+#include "hud.h"
 
 OrbitCamera g_camera;
 bool g_engines_on = false;
+bool g_show_help = true;
 int g_next_event = 0;
 double g_boom_target = 0.0;
 
@@ -50,6 +52,7 @@ int main(int argc, char** argv) {
         if (win.was_key_pressed(GLFW_KEY_H)) view_whole_rocket();
         if (win.was_key_pressed(GLFW_KEY_V)) view_voyager();
         if (win.was_key_pressed(GLFW_KEY_R)) { rocket.reset(); g_next_event = 0; g_boom_target = 0.0; }
+        if (win.was_key_pressed(GLFW_KEY_F1)) g_show_help = !g_show_help;
         for (int k = 0; k < 2; k++)
             if (win.was_key_pressed(GLFW_KEY_1 + k)) { g_mission_index = k; rocket.build(k); g_next_event = 0; }
         rocket.boom_deploy += glm::clamp(g_boom_target - rocket.boom_deploy, -win.delta_time * 0.2, win.delta_time * 0.2);
@@ -68,8 +71,20 @@ int main(int argc, char** argv) {
         std::snprintf(title, sizeof(title), "a2-model-2 | %s | released %d/%d | booms %.0f%% | engines %s", MISSIONS[g_mission_index].name,
                       g_next_event, RELEASE_COUNT, rocket.boom_deploy * 100.0, g_engines_on ? "ON" : "off");
         glfwSetWindowTitle(win.handle, title);
+        ViewerHUD::draw(renderer, win, "VEHICLE VIEWER - CONTROLS", {
+            "MOUSE DRAG ORBIT CAMERA",
+            "MOUSE WHEEL ZOOM",
+            "N RELEASE NEXT COMPONENT",
+            "O DEPLOY OR RETRACT BOOMS",
+            "B TOGGLE ENGINE FLAMES",
+            "H FRAME COMPLETE ROCKET",
+            "V FOCUS VOYAGER",
+            "1 2 SELECT VOYAGER MISSION",
+            "R RESET VEHICLE  F1 HIDE PANEL"
+        }, g_show_help);
         win.end_frame();
     }
     glfwTerminate();
     return 0;
 }
+

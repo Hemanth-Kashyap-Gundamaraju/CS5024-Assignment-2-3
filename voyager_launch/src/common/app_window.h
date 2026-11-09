@@ -28,10 +28,45 @@ public:
         handle = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, title, nullptr, nullptr);
         if (!handle) { std::cerr << "Could not create window\n"; return false; }
         glfwMakeContextCurrent(handle);
-        glfwSwapInterval(1);
+        std::cout << "Current GLFW context: "
+          << (glfwGetCurrentContext() != nullptr ? "VALID" : "NULL")
+          << std::endl;
+
+        std::cout << "Window OpenGL version: "
+                << glfwGetWindowAttrib(handle, GLFW_CONTEXT_VERSION_MAJOR)
+                << "."
+                << glfwGetWindowAttrib(handle, GLFW_CONTEXT_VERSION_MINOR)
+                << std::endl;
+
+        const GLubyte* version = glGetString(GL_VERSION);
+
+        std::cout << "OpenGL version string: "
+                << (version ? reinterpret_cast<const char*>(version) : "NULL")
+                << std::endl;
+                glfwSwapInterval(1);
         glewExperimental = GL_TRUE;
-        if (glewInit() != GLEW_OK) { std::cerr << "glewInit failed\n"; return false; }
-        glGetError();  // glewInit can leave a harmless error
+
+        GLenum glew_status = glewInit();
+        glewExperimental = GL_TRUE;
+        // Use X11 through XWayland so classic GLEW can access GLX.
+        if (!glfwPlatformSupported(GLFW_PLATFORM_X11)) {
+            std::cerr << "GLFW X11 platform is not supported\n";
+            return false;
+        }
+
+        glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+
+        if (!glfwInit()) {
+            std::cerr << "glfwInit failed\n";
+            return false;
+        }
+
+        std::cout << "GLFW platform: "
+                << (glfwGetPlatform() == GLFW_PLATFORM_X11 ? "X11" : "Other")
+                << std::endl;
+
+        glGetError();
+         // glewInit can leave a harmless error
         glfwSetWindowUserPointer(handle, this);
         glfwSetKeyCallback(handle, _key_callback);
         glfwSetScrollCallback(handle, _scroll_callback);

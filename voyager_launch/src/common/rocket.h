@@ -134,7 +134,8 @@ public:
 
     // Description: draw the whole vehicle (attached pieces, released pieces, Voyager, flames).
     // In: renderer (local pass begun), frame, pose of the rocket base, camera altitude for flame size.
-    void draw(SceneRenderer& r, const FrameContext& ctx, const WorldTransform& pose, double flame_altitude, bool draw_flames = true) {
+    void draw(SceneRenderer& r, const FrameContext& ctx, const WorldTransform& pose, double flame_altitude,
+              bool draw_flames = true, float max_flame_length = 0.0f) {
         for (int i = 0; i < PIECE_COUNT; i++) {
             Piece& p = pieces_[i];
             if (!p.is_visible) continue;
@@ -143,7 +144,7 @@ public:
                 r.draw_mesh(part.mesh, make_relative_model(wt, glm::translate(glm::mat4(1.0f), -p.pivot) * part.local, ctx.camera_position), part.material);
         }
         _draw_voyager(r, ctx, pose);
-        if (draw_flames) _draw_flames(r, ctx, pose, flame_altitude);
+        if (draw_flames) _draw_flames(r, ctx, pose, flame_altitude, max_flame_length);
     }
 
     // Description: world position of a point given in rocket space.
@@ -281,7 +282,7 @@ private:
             draw(unit_sphere_, _move(a.x, a.y, a.z) * glm::scale(glm::mat4(1.0f), glm::vec3(0.12f)), dark);
         }
     }
-    void _draw_flames(SceneRenderer& r, const FrameContext& ctx, const WorldTransform& pose, double altitude) {
+    void _draw_flames(SceneRenderer& r, const FrameContext& ctx, const WorldTransform& pose, double altitude, float max_length) {
         float s = (float)glm::clamp(altitude / 80000.0, 0.0, 1.0);    // the plume balloons out in thin air
         float len_k = 1.0f + 1.5f * s, rad_k = 1.0f + 1.2f * s;
         glm::mat4 flip = glm::rotate(glm::mat4(1.0f), 3.1415927f, glm::vec3(1, 0, 0));   // cone tip points down
@@ -289,10 +290,16 @@ private:
             if (!p.is_burning || !p.is_visible) continue;
             WorldTransform wt = _piece_transform(p, pose);
             for (auto& f : p.flames) {
+                // A short plume is used close to the pad so the exhaust does not
+                // extend through the ground or launch table. A zero limit keeps
+                // the original altitude-scaled plume length.
+                float plume_length = f.length * len_k;
+                if (max_length > 0.0f) plume_length = glm::min(plume_length, max_length);
                 glm::mat4 local = glm::translate(glm::mat4(1.0f), -p.pivot) * glm::translate(glm::mat4(1.0f), f.position) * flip
-                                  * glm::scale(glm::mat4(1.0f), glm::vec3(f.radius * rad_k, f.length * len_k, f.radius * rad_k));
+                                  * glm::scale(glm::mat4(1.0f), glm::vec3(f.radius * rad_k, plume_length, f.radius * rad_k));
                 r.draw_flame(cone_, make_relative_model(wt, local, ctx.camera_position), 1.2f);
             }
         }
     }
 };
+

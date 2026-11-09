@@ -93,9 +93,26 @@ private:
         for (int sx = -1; sx <= 1; sx += 2)                                  // 4 lightning masts
             for (int sz = -1; sz <= 1; sz += 2)
                 _cylinder(r, ctx, t, glm::vec3(sx * 75.0f, 0, sz * 75.0f), 0.35f, 80.0f, steel);
-        _sphere(r, ctx, t, glm::vec3(-95, 9, -60), 8.5f, white);             // propellant tanks
-        _sphere(r, ctx, t, glm::vec3(-95, 9, -85), 8.5f, white);
+        // Two vertical cylindrical propellant tanks with rounded end caps.
+        // These replace the old spherical placeholders and read more clearly
+        // as storage tanks when viewed from the launch-site camera.
+        auto tank = [&](float x, float z) {
+            const float radius = 4.2f;
+            const float lower_cap_y = 4.5f;
+            const float upper_cap_y = 14.5f;
+            Material tank_paint = make_material(glm::vec3(0.88f, 0.90f, 0.92f), 0.45f, 0.28f);
+            _cylinder(r, ctx, t, glm::vec3(x, lower_cap_y, z), radius, upper_cap_y - lower_cap_y, tank_paint);
+            _sphere(r, ctx, t, glm::vec3(x, lower_cap_y, z), radius, tank_paint);
+            _sphere(r, ctx, t, glm::vec3(x, upper_cap_y, z), radius, tank_paint);
+            // Dark support bands make the tank silhouette easier to read.
+            Material band = make_material(glm::vec3(0.28f, 0.31f, 0.34f), 0.25f, 0.25f);
+            _cylinder(r, ctx, t, glm::vec3(x, 7.0f, z), radius + 0.08f, 0.35f, band);
+            _cylinder(r, ctx, t, glm::vec3(x, 12.0f, z), radius + 0.08f, 0.35f, band);
+        };
+        tank(-95.0f, -60.0f);
+        tank(-95.0f, -85.0f);
         _box(r, ctx, t, glm::vec3(110, 3, 45), glm::vec3(30, 6, 20), make_material(glm::vec3(0.6f, 0.58f, 0.52f), 0.1f));   // bunker
         _box(r, ctx, t, glm::vec3(0, 41, 230), glm::vec3(22, 82, 24), make_material(glm::vec3(0.85f, 0.45f, 0.15f), 0.2f)); // service tower, rolled back
     }
 };
+
